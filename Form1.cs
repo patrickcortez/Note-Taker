@@ -117,6 +117,12 @@ namespace Note_Taker2._0
                 }
             };
 
+            accept.Click += (s, e) =>
+            {
+                popup.Hide();
+                input.Clear();
+            };
+
             Control[] cons = { input, lb,accept,header };
             inputBox.Controls.AddRange(cons);
 
@@ -128,7 +134,6 @@ namespace Note_Taker2._0
             try
             {
                 TreeNode node = FolderView.SelectedNode;
-       
                 Control tb = inputBox.Controls[index1];
                 
                 string path = node.Tag.ToString();
@@ -143,6 +148,7 @@ namespace Note_Taker2._0
                     File.Create(Path.Combine(path, tb.Text));
                     FolderView.Nodes.Clear();
                     InitializeTreeview(); //Update Tree view
+                    
                 }
             }catch(Exception ex)
             {
@@ -155,8 +161,6 @@ namespace Note_Taker2._0
             try
             {
                 TreeNode node = FolderView.SelectedNode;
-                inputBox.Visible = true;
-                inputBox.BringToFront();
                 Control tb = inputBox.Controls[index1];
 
                 string path = node.Tag.ToString();
@@ -166,9 +170,12 @@ namespace Note_Taker2._0
                     return;
                 }
 
-                Directory.CreateDirectory(Path.Combine(path, tb.Text));
-                FolderView.Nodes.Clear();
-                InitializeTreeview();
+                if (inputBox.ShowDialog() == DialogResult.OK)
+                {
+                    Directory.CreateDirectory(Path.Combine(path, tb.Text));
+                    FolderView.Nodes.Clear();
+                    InitializeTreeview();
+                }
             }catch(Exception ex)
             {
                 MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -276,7 +283,7 @@ namespace Note_Taker2._0
             {
 
 
-                string fullpath = e.Node.FullPath;
+                string fullpath = e.Node.Tag.ToString();
 
                 if (currentbuffer.Count > 0 && rtb_editor.Lines.Count() > 0 && FileModified(currentbuffer, rtb_editor.Lines.ToList()))
                 {
@@ -324,9 +331,20 @@ namespace Note_Taker2._0
                     rtb_editor.Clear(); //Store then clear
 
                     lbl_filename.Text = e.Node.Text.ToString();
+
+                   foreach(FileContent con in Files) // check if the file has an unsaved buffer.
+                   {
+                        if (lbl_filename.Text.Equals(con.FileName))
+                        {
+                            rtb_editor.Lines = con.GetLines().ToArray();
+                            currentbuffer.AddRange(rtb_editor.Lines);
+                            return;
+                        }
+                   }
+
                     rtb_editor.LoadFile(fullpath, RichTextBoxStreamType.PlainText);
                     currentbuffer.AddRange(rtb_editor.Lines);
-                    
+
                 }
             }catch(Exception ex)
             {
@@ -406,6 +424,19 @@ namespace Note_Taker2._0
             {
                 if (rtb_editor.Text.Length > 1)
                 {
+
+                    if(Files.Count > 0)
+                    {
+                        DialogResult rest = MessageBox.Show("Do you want to save your changes?", "File Information", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (rest.Equals(DialogResult.Yes))
+                        {
+                            saveAllToolStripMenuItem.PerformClick();
+                        }
+                        
+                    }
+
+
                     DialogResult res = MessageBox.Show("Do you want to save your changes?", "File Information", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                     if (res.Equals(DialogResult.Yes))
@@ -413,6 +444,9 @@ namespace Note_Taker2._0
                         saveToolStripMenuItem.PerformClick();
                     }
                 }
+
+                
+
             }catch(Exception ex)
             {
                 MessageBox.Show(ex.Message);
