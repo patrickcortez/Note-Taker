@@ -307,7 +307,7 @@ namespace Note_Taker2._0
                 {
                     if (lbl_filename.Text == "None")
                     {
-                        currentNodePath = FolderView.SelectedNode.Tag.ToString();
+                        currentNodePath = e.Node.Tag.ToString();
                     }
 
                     lbl_filename.Text = e.Node.Text.ToString();
@@ -412,6 +412,8 @@ namespace Note_Taker2._0
                         }
                     }
                 }
+
+            Files.Clear();
             
         }
 
@@ -434,10 +436,8 @@ namespace Note_Taker2._0
         {
             try
             {
-                if (rtb_editor.Text.Length > 1)
+                if (FileModified(currentbuffer,rtb_editor.Lines.ToList())) // Ensure that the file IS modified rather than basing it on string length
                 {
-
-
 
                     DialogResult res = MessageBox.Show("Do you want to save your changes?", "File Information", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
