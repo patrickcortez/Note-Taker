@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows.Forms;
 using static Note_Taker2._0.Components.Utils.Utility;
 
@@ -13,7 +12,7 @@ namespace Note_Taker2._0
     
     public partial class Form1 : Form
     {
-        string cwd;
+        string cwd,currentNodePath;
         List<FileContent> Files;
         List<string> currentbuffer;
         Panel popup;
@@ -112,7 +111,8 @@ namespace Note_Taker2._0
             {
                 if (e.KeyCode.Equals(Keys.Enter))
                 {
-                    inputBox.Visible = false;
+                    inputBox.DialogResult = DialogResult.OK;
+                    inputBox.Close();
                    
                 }
             };
@@ -145,7 +145,7 @@ namespace Note_Taker2._0
 
                 if (inputBox.ShowDialog() == DialogResult.OK){
 
-                    File.Create(Path.Combine(path, tb.Text));
+                    File.Create(Path.Combine(path, tb.Text)).Dispose();
                     FolderView.Nodes.Clear();
                     InitializeTreeview(); //Update Tree view
                     
@@ -224,7 +224,7 @@ namespace Note_Taker2._0
                 string name = Path.GetFileName(item);
 
                 TreeNode Node = new(name);
-                Node.Tag = Path.Combine(path,item);
+                Node.Tag = item;
                 ParentNode.Nodes.Add(Node);
 
                 if (File.GetAttributes(item).HasFlag(FileAttributes.Directory))
@@ -238,6 +238,7 @@ namespace Note_Taker2._0
         {
             try
             {
+                FolderView.Nodes.Clear();
                 FolderBrowserDialog open = new FolderBrowserDialog
                 {
                     ShowNewFolderButton = true
@@ -281,7 +282,7 @@ namespace Note_Taker2._0
         {
             try
             {
-
+                
 
                 string fullpath = e.Node.Tag.ToString();
 
@@ -304,6 +305,11 @@ namespace Note_Taker2._0
 
                 if (rtb_editor.Text.Length < 1)
                 {
+                    if (lbl_filename.Text == "None")
+                    {
+                        currentNodePath = FolderView.SelectedNode.Tag.ToString();
+                    }
+
                     lbl_filename.Text = e.Node.Text.ToString();
                     rtb_editor.LoadFile(fullpath,RichTextBoxStreamType.PlainText);
                     currentbuffer.AddRange(rtb_editor.Lines);
@@ -316,7 +322,7 @@ namespace Note_Taker2._0
                     {
                         foreach(FileContent con in Files)
                         {
-                            if(con.FileName == lbl_filename.Text)
+                            if(con.FilePath == fullpath)
                             {
                                 shouldAdd = false;
                             }
@@ -325,7 +331,7 @@ namespace Note_Taker2._0
 
                     if (shouldAdd.Equals(true))
                     {
-                        Files.Add(new FileContent(lbl_filename.Text, rtb_editor.Lines.ToList()));
+                        Files.Add(new FileContent(lbl_filename.Text, rtb_editor.Lines.ToList(),currentNodePath));
                     }
                     
                     rtb_editor.Clear(); //Store then clear
@@ -334,16 +340,18 @@ namespace Note_Taker2._0
 
                    foreach(FileContent con in Files) // check if the file has an unsaved buffer.
                    {
-                        if (lbl_filename.Text.Equals(con.FileName))
+                        if (fullpath.Equals(con.FilePath))
                         {
                             rtb_editor.Lines = con.GetLines().ToArray();
                             currentbuffer.AddRange(rtb_editor.Lines);
+                            currentNodePath = fullpath;
                             return;
                         }
                    }
 
                     rtb_editor.LoadFile(fullpath, RichTextBoxStreamType.PlainText);
                     currentbuffer.AddRange(rtb_editor.Lines);
+                    currentNodePath = fullpath;
 
                 }
             }catch(Exception ex)
@@ -378,7 +386,7 @@ namespace Note_Taker2._0
             }
             else
             {
-                fullpath = FolderView.SelectedNode.FullPath;
+                fullpath = FolderView.SelectedNode.Tag.ToString();
             }
             using(StreamWriter sw = new(fullpath,false))
             {
@@ -391,16 +399,20 @@ namespace Note_Taker2._0
 
         private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (StreamWriter sw = new(FolderView.SelectedNode.FullPath, false))
-            {
+
                 foreach (FileContent con in Files)
                 {
-                    foreach (string line in con.GetLines())
+                    using (StreamWriter sw = new(con.FilePath, false))
                     {
-                        sw.WriteLine(line);
+                        foreach (string line in con.GetLines())
+                        {
+
+                            sw.WriteLine(line);
+
+                        }
                     }
                 }
-            }
+            
         }
 
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -425,22 +437,18 @@ namespace Note_Taker2._0
                 if (rtb_editor.Text.Length > 1)
                 {
 
-                    if(Files.Count > 0)
-                    {
-                        DialogResult rest = MessageBox.Show("Do you want to save your changes?", "File Information", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                        if (rest.Equals(DialogResult.Yes))
-                        {
-                            saveAllToolStripMenuItem.PerformClick();
-                        }
-                        
-                    }
 
 
                     DialogResult res = MessageBox.Show("Do you want to save your changes?", "File Information", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                     if (res.Equals(DialogResult.Yes))
                     {
+                        if (Files.Count > 0)
+                        {
+
+                            saveAllToolStripMenuItem.PerformClick();
+                        }
+
                         saveToolStripMenuItem.PerformClick();
                     }
                 }

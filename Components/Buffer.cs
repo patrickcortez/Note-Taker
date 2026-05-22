@@ -7,11 +7,13 @@ namespace Note_Taker2._0.Components
     {
         private List<string> FileBuffer;
         public string FileName;
+        public string FilePath;
 
-        public FileContent(string Name,List<string> Buffer)
+        public FileContent(string Name,List<string> Buffer,string FileP)
         {
             FileName = Name;
             FileBuffer = new(Buffer);
+            FilePath = FileP;
         }
 
         public void AddLine(string line)
