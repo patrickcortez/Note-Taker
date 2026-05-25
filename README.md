@@ -19,7 +19,8 @@ It's current capabilities is relatively simple:
 
  ## Installation
 
- To install *Note Taker* simply go over to the 
+ To install *Note Taker* simply go over to the [RELEASE](https://github.com/patrickcortez/Note-Taker/releases)
+ and download the installer. Then simply launch the installer and wait for it to install.
 
  ---
 
