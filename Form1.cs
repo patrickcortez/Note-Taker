@@ -21,6 +21,7 @@ namespace Note_Taker2._0
         Form inputBox;
         Button btn_createfile;
         Button btn_creatfolder,btnpop,btnrename;
+        
         int index1;
         readonly string Assets = "Assets";
 

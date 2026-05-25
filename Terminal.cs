@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,7 +35,22 @@ namespace Note_Taker2._0
             shell = Xshell;
         }
 
+        private bool NLFONT()
+        {
+            InstalledFontCollection fonts = new();
 
+            foreach(FontFamily font in fonts.Families)
+            {
+                if (font.Name.Equals("JetBrains Mono"))
+                {
+                    return true;
+                }
+            }
+
+            MessageBox.Show("JetBrainsMonoNL Nerd Font not installed! Reverting to Sergei UI", "Warning");
+                
+            return false;
+        }
 
         public Terminal()
         {
@@ -42,17 +58,23 @@ namespace Note_Taker2._0
 
             tb_input.KeyDown += (s, e) => Input_KeyDown(s, e);
             tb_input.TextChanged += (s, e) => Input_TextChange(s, e);
-            
+
+            Console.Font = NLFONT() ? new("JetBrainsMonoNLNerdFont-Light", 11) : new("Sergei UI",8);
+
+
             Shell = new()
             {
                 StartInfo = new()
                 {
                     FileName = !string.IsNullOrEmpty(shell) ? shell : "cmd",
+                    Arguments = "-NoProfile",
                     UseShellExecute = false,
                     WorkingDirectory = WorkingDirectory != String.Empty ? WorkingDirectory : Environment.GetEnvironmentVariable("USERPROFILE"),
                     RedirectStandardOutput = true,
                     RedirectStandardInput = true,
                     RedirectStandardError = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8,
                     CreateNoWindow = true
                 }
 
@@ -81,8 +103,6 @@ namespace Note_Taker2._0
             Shell.BeginOutputReadLine();
             Shell.BeginErrorReadLine();
 
-
-
         }
 
         internal void ChangeWorkingDirectory(string dir)
@@ -97,6 +117,12 @@ namespace Note_Taker2._0
         {
             if (e.KeyCode.Equals(Keys.Enter))
             {
+                if (tb_input.Text.Equals("exit"))
+                {
+                    MessageBox.Show("Cannot Exit Root Terminal Session!", "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                    return;
+                }
+
                 Shell.StandardInput.WriteLine(tb_input.Text);
                 Shell.StandardInput.Flush();
 
@@ -104,6 +130,7 @@ namespace Note_Taker2._0
                 {
                     Console.Clear();
                 }
+
 
                 tb_input.Clear();
             }
