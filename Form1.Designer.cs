@@ -37,12 +37,13 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.appearanceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AboutMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripComboBox1 = new System.Windows.Forms.ToolStripComboBox();
             this.lbl_filename = new System.Windows.Forms.Label();
             this.FolderView = new System.Windows.Forms.TreeView();
             this.lbl_dir = new System.Windows.Forms.Label();
             this.rtb_editor = new System.Windows.Forms.RichTextBox();
             this.terminal1 = new Note_Taker2._0.Terminal();
-            this.AboutMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,7 +57,7 @@
             this.appearanceToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1522, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(1522, 30);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -69,7 +70,7 @@
             this.saveAllToolStripMenuItem,
             this.toolStripSeparator2});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
             this.fileToolStripMenuItem.Text = "File";
             this.fileToolStripMenuItem.Click += new System.EventHandler(this.fileToolStripMenuItem_Click);
             // 
@@ -110,17 +111,32 @@
             // 
             this.appearanceToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.editSettingsToolStripMenuItem,
-            this.AboutMenuItem1});
+            this.AboutMenuItem1,
+            this.toolStripComboBox1});
             this.appearanceToolStripMenuItem.Name = "appearanceToolStripMenuItem";
-            this.appearanceToolStripMenuItem.Size = new System.Drawing.Size(73, 24);
+            this.appearanceToolStripMenuItem.Size = new System.Drawing.Size(73, 26);
             this.appearanceToolStripMenuItem.Text = "Configs";
+            this.appearanceToolStripMenuItem.Click += new System.EventHandler(this.appearanceToolStripMenuItem_Click);
             // 
             // editSettingsToolStripMenuItem
             // 
             this.editSettingsToolStripMenuItem.Name = "editSettingsToolStripMenuItem";
-            this.editSettingsToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.editSettingsToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
             this.editSettingsToolStripMenuItem.Text = "Edit Settings";
             this.editSettingsToolStripMenuItem.Click += new System.EventHandler(this.editSettingsToolStripMenuItem_Click_1);
+            // 
+            // AboutMenuItem1
+            // 
+            this.AboutMenuItem1.Name = "AboutMenuItem1";
+            this.AboutMenuItem1.Size = new System.Drawing.Size(195, 26);
+            this.AboutMenuItem1.Text = "About";
+            this.AboutMenuItem1.Click += new System.EventHandler(this.AboutMenuItem1_Click);
+            // 
+            // toolStripComboBox1
+            // 
+            this.toolStripComboBox1.Name = "toolStripComboBox1";
+            this.toolStripComboBox1.Size = new System.Drawing.Size(121, 28);
+            this.toolStripComboBox1.SelectedIndexChanged += new System.EventHandler(this.toolStripComboBox1_SelectedIndexChanged);
             // 
             // lbl_filename
             // 
@@ -135,8 +151,11 @@
             // 
             this.FolderView.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
+            this.FolderView.BackColor = System.Drawing.Color.Gray;
             this.FolderView.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
-            this.FolderView.Location = new System.Drawing.Point(15, 53);
+            this.FolderView.ForeColor = System.Drawing.Color.Black;
+            this.FolderView.HotTracking = true;
+            this.FolderView.Location = new System.Drawing.Point(15, 54);
             this.FolderView.Name = "FolderView";
             this.FolderView.Size = new System.Drawing.Size(184, 462);
             this.FolderView.TabIndex = 3;
@@ -153,10 +172,14 @@
             // 
             // rtb_editor
             // 
+            this.rtb_editor.AcceptsTab = true;
             this.rtb_editor.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.rtb_editor.BackColor = System.Drawing.Color.Gray;
+            this.rtb_editor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.rtb_editor.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rtb_editor.ForeColor = System.Drawing.Color.White;
             this.rtb_editor.Location = new System.Drawing.Point(237, 53);
             this.rtb_editor.Name = "rtb_editor";
             this.rtb_editor.Size = new System.Drawing.Size(1273, 462);
@@ -173,13 +196,6 @@
             this.terminal1.Name = "terminal1";
             this.terminal1.Size = new System.Drawing.Size(1522, 277);
             this.terminal1.TabIndex = 5;
-            // 
-            // AboutMenuItem1
-            // 
-            this.AboutMenuItem1.Name = "AboutMenuItem1";
-            this.AboutMenuItem1.Size = new System.Drawing.Size(224, 26);
-            this.AboutMenuItem1.Text = "About";
-            this.AboutMenuItem1.Click += new System.EventHandler(this.AboutMenuItem1_Click);
             // 
             // Form1
             // 
@@ -224,6 +240,7 @@
         private System.Windows.Forms.ToolStripMenuItem appearanceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editSettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem AboutMenuItem1;
+        private System.Windows.Forms.ToolStripComboBox toolStripComboBox1;
     }
 }
 

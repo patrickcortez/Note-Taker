@@ -17,7 +17,7 @@ namespace Note_Taker2._0
     {
         private Process Shell;
         private static string WorkingDirectory;
-        static string shell;
+        static string shell { get; set; }
 
 
         internal static void SetWorkingDirectory(string Dir)

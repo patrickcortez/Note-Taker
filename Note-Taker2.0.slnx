@@ -1,4 +1,6 @@
 <Solution>
-  <Project Path="../NoteTaker-Setup/NoteTaker-Setup.vdproj" Type="Installer" />
+  <Project Path="../NoteTaker-Setup/NoteTaker-Setup.vdproj" Type="Installer">
+    <Build />
+  </Project>
   <Project Path="Note-Taker2.0.csproj" Id="2618d5bd-3da2-4d70-9941-d18fb34f9184" />
 </Solution>

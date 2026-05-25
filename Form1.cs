@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -21,6 +22,7 @@ namespace Note_Taker2._0
         Form inputBox;
         Button btn_createfile;
         Button btn_creatfolder,btnpop,btnrename;
+        int lastexitcode;
         
         int index1;
         readonly string Assets = "Assets";
@@ -318,6 +320,8 @@ namespace Note_Taker2._0
                 InitializeComponent();
                 InitializeLabels();
                 InitiateControls(); // Initiallize our Controls
+                InitComboBox();
+                rtb_editor.Font = new(reader.GetValue("font"),int.Parse(reader.GetValue("size")));
 
                 Files = new();
                 currentbuffer = new();
@@ -333,7 +337,7 @@ namespace Note_Taker2._0
 
         private void InitializeTreeview()
         {
-            TreeNode Root = new(Path.GetFileName(cwd));
+            TreeNode Root = new("📁 " + Path.GetFileName(cwd));
             Root.Tag = cwd;
             FolderView.Nodes.Add(Root);
 
@@ -356,6 +360,23 @@ namespace Note_Taker2._0
             foreach(string item in Directory.GetFileSystemEntries(path))
             {
                 string name = Path.GetFileName(item);
+                bool isDir = File.GetAttributes(item).HasFlag(FileAttributes.Directory);
+
+                if (isDir)
+                {
+                    name = "📁 " + name;
+                }
+                else
+                {
+                    if (Path.GetExtension(item).Equals(".exe"))
+                    {
+                        name = "⚙ " + name;
+                    }
+                    else
+                    {
+                        name = "🗎 " + name;
+                    }
+                }
 
                 TreeNode Node = new(name);
                 Node.Tag = item;
@@ -434,8 +455,11 @@ namespace Note_Taker2._0
                     if(res == DialogResult.Yes)
                     {
                         saveToolStripMenuItem.PerformClick();
+                        
                     }
                 }
+
+                
 
 
                 if (File.GetAttributes(fullpath).HasFlag(FileAttributes.Directory))
@@ -444,7 +468,28 @@ namespace Note_Taker2._0
                     return;
                 }
 
-                if (rtb_editor.Text.Length < 1)
+                if (Path.GetExtension(fullpath).Equals(".exe"))
+                {
+                  //  MessageBox.Show(fullpath);
+                    Process exe = new()
+                    {
+                        StartInfo = new()
+                        {
+                            FileName = fullpath,
+                            UseShellExecute = true,
+                            WindowStyle = ProcessWindowStyle.Normal
+                        }
+                    };
+
+                    exe.Start();
+                    exe.WaitForExit();
+
+                    lastexitcode = exe.ExitCode;
+
+                    return;
+                }
+
+                    if (rtb_editor.Text.Length < 1)
                 {
                     if (lbl_filename.Text == "None")
                     {
@@ -501,9 +546,20 @@ namespace Note_Taker2._0
             }
         }
 
+        private void InitComboBox()
+        {
+            toolStripComboBox1.Text = "Sergei UI";
+            InstalledFontCollection fonts = new();
+            
+            foreach(FontFamily font in fonts.Families)
+            {
+                toolStripComboBox1.Items.Add(font.Name);
+            }
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            
         }
 
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -538,10 +594,6 @@ namespace Note_Taker2._0
             }
         }
 
-        private void editSettingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void editSettingsToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
@@ -571,6 +623,37 @@ namespace Note_Taker2._0
             ";
 
             MessageBox.Show(Msg, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void appearanceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void testToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TabbedRichTextBox tbr = new() { Dock = DockStyle.Fill };
+
+            Form nF = new() {
+                Size = new(200,200)
+                
+            };
+
+            TabbedRichTextBox.Node = FolderView.SelectedNode;
+
+            nF.Controls.Add(tbr);
+            nF.Show();
+        }
+
+        private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            DialogResult res = MessageBox.Show("Are you sure you sure?", "Inquiry", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (res == DialogResult.Yes)
+            {
+                string fontname = toolStripComboBox1.SelectedItem.ToString();
+                rtb_editor.Font = new(fontname, 11);
+            }
         }
 
         private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)

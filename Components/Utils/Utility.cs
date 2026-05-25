@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
+
 
 namespace Note_Taker2._0.Components.Utils
 {
@@ -12,5 +13,7 @@ namespace Note_Taker2._0.Components.Utils
         {
             return !currentbuffer.SequenceEqual(rtb_lines);
         }
+
+       
     }
 }
