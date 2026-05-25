@@ -1,6 +1,8 @@
 ﻿using Note_Taker2._0.Components;
+using Note_Taker2._0.ConfigEngine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -18,8 +20,25 @@ namespace Note_Taker2._0
         Panel popup;
         Form inputBox;
         Button btn_createfile;
-        Button btn_creatfolder;
+        Button btn_creatfolder,btnpop,btnrename;
         int index1;
+        readonly string Assets = "Assets";
+
+        private string GetAssets()
+        {
+            return Path.Combine(AppContext.BaseDirectory,Assets);
+        }
+
+        private void UpdateTreeview()
+        {
+            FolderView.Nodes.Clear();
+            InitializeTreeview();
+        }
+
+        public DialogResult Announce(string msg,MessageBoxButtons btn)
+        {
+            return MessageBox.Show(msg, "Note Taker", btn, MessageBoxIcon.Asterisk);
+        }
 
         private void InitiateControls()
         {
@@ -107,6 +126,99 @@ namespace Note_Taker2._0
 
             btn_creatfolder.Click += (s, e) => CreateFolder_Click(s, e);
 
+            btnpop = new()
+            {
+                Text = "Delete",
+                Enabled = true,
+                Size = new(190, 30),
+                Location = new(5,(btn_creatfolder.Height * 2) + 5)
+            };
+
+            btnpop.Click += (s, e) =>
+            {
+                try
+                {
+                    TreeNode Current = FolderView.SelectedNode;
+                    string path;
+
+                    if (Current.BackColor.Equals(Color.LightGray))
+                    {
+                        path = Current.Tag.ToString();
+
+                        if (Directory.GetFileSystemEntries(path).Count() > 0)
+                        {
+                            DialogResult res = MessageBox.Show($"Are you sure you want to delete {Current.Name}", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                            if (res.Equals(DialogResult.Yes))
+                            {
+                                Directory.Delete(path, true);
+                                UpdateTreeview();
+                                Announce($"{path} Deleted Successfully", MessageBoxButtons.OK);
+                                return;
+                            }
+                            else
+                            {
+                                return;
+                            }
+                        }
+
+                        Directory.Delete(path);
+                        UpdateTreeview();
+                        Announce($"{path} Deleted Successfully", MessageBoxButtons.OK);
+                    }
+                    else
+                    {
+                        path = Current.Tag.ToString();
+
+                        File.Delete(path);
+                        UpdateTreeview();
+                        Announce($"{path} Deleted Successfully",MessageBoxButtons.OK);
+                    }
+                }catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+
+            btnrename = new()
+            {
+                Text = "Rename",
+                Enabled = true,
+                Size = new(190, 30),
+                Location = new(5, (btnpop.Height * 3) + 5)
+            };
+
+            btnrename.Click += (s, e) =>
+            {
+                try
+                {
+                    TreeNode Current = FolderView.SelectedNode;
+                    string oldname = Current.Tag.ToString(), newname;
+
+                    if (inputBox.ShowDialog().Equals(DialogResult.OK))
+                    {
+                        Control tb = inputBox.Controls[index1];
+                        newname = Path.Combine(Directory.GetParent(oldname).FullName, tb.Text);
+
+                        MessageBox.Show(newname, "Debug");
+
+                        if (Current.BackColor.Equals(Color.LightGray))
+                        {
+                            Directory.Move(oldname, newname);
+                            UpdateTreeview();
+                        }
+                        else
+                        {
+                            File.Move(oldname, newname);
+                            UpdateTreeview();
+                        }
+                    }
+                }catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+
             input.KeyDown += (s, e) =>
             {
                 if (e.KeyCode.Equals(Keys.Enter))
@@ -120,7 +232,7 @@ namespace Note_Taker2._0
             accept.Click += (s, e) =>
             {
                 popup.Hide();
-                input.Clear();
+            
             };
 
             Control[] cons = { input, lb,accept,header };
@@ -183,18 +295,39 @@ namespace Note_Taker2._0
 
         }
 
+        
+
         public Form1()
         {
-            InitializeComponent();
-            InitializeLabels();
-            InitiateControls(); // Initiallize our Controls
-            Files = new();
-            currentbuffer = new();
+            try
+            {
+                if (!Directory.Exists(GetAssets())){
+                    Directory.CreateDirectory(GetAssets());
+                }
 
-            Controls.Add(popup);
+                this.Icon = new Icon(Path.Combine(GetAssets(), "NTIcon.ico"));
 
-            popup.Controls.Add(btn_createfile);
-            popup.Controls.Add(btn_creatfolder);
+                Read reader = new();
+                Terminal.SetWorkingDirectory(cwd);
+                string shell = reader.GetValue("shell");
+                //MessageBox.Show(shell, "Debug");
+
+                Terminal.GetShell(shell);
+
+                InitializeComponent();
+                InitializeLabels();
+                InitiateControls(); // Initiallize our Controls
+
+                Files = new();
+                currentbuffer = new();
+
+                Controls.Add(popup);
+
+                popup.Controls.AddRange(new[] { btn_createfile,btn_creatfolder,btnrename,btnpop });
+            }catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void InitializeTreeview()
@@ -229,6 +362,7 @@ namespace Note_Taker2._0
 
                 if (File.GetAttributes(item).HasFlag(FileAttributes.Directory))
                 {
+                    Node.BackColor = Color.LightGray;
                     AddNode(item, Node);
                 }
             }
@@ -254,11 +388,20 @@ namespace Note_Taker2._0
                         InitializeTreeview();
                         lbl_dir.Text = Directory.GetParent(cwd).Name;
                     }
+
+                    terminal1.ChangeWorkingDirectory(open.SelectedPath);
                 }
 
             }
             catch (DirectoryNotFoundException) { }
             
+        }
+
+        private void ShowPopup(MouseEventArgs e)
+        {
+            popup.Location = e.Location;
+            popup.BringToFront();
+            popup.Show();
         }
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
@@ -267,9 +410,7 @@ namespace Note_Taker2._0
             {
                 if (e.Location.X < this.Width && e.Location.Y < this.Height)
                 {
-                    popup.Location = e.Location;
-                    popup.BringToFront();
-                    popup.Show();
+                    ShowPopup(e);
                 }
             }
             else
@@ -283,7 +424,6 @@ namespace Note_Taker2._0
             try
             {
                 
-
                 string fullpath = e.Node.Tag.ToString();
 
                 if (currentbuffer.Count > 0 && rtb_editor.Lines.Count() > 0 && FileModified(currentbuffer, rtb_editor.Lines.ToList()))
@@ -395,6 +535,41 @@ namespace Note_Taker2._0
                     sw.WriteLine(line);
                 }
             }
+        }
+
+        private void editSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void editSettingsToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            Process proc = new()
+            {
+
+                StartInfo = new()
+                {
+                    FileName = "notepad",
+                    Arguments = Path.Combine(AppContext.BaseDirectory, "Assets", "NT.con"),
+                }
+
+            };
+
+            proc.Start();
+        }
+
+        private void AboutMenuItem1_Click(object sender, EventArgs e)
+        {
+            string Msg = @"
+                About:
+            Note Taker is a open source, note taking tool developed in C#.
+            Primarily for the goal of creating an alternative to existing tools
+            Like Obsidian, VSCode and more. 
+
+            Note Taker is under the License: GNU GPL v3.
+            ";
+
+            MessageBox.Show(Msg, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)
