@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using static Note_Taker2._0.Components.Utils.Utility;
 using System.Security.Cryptography;
 using System.Text;
+using Author = (string Name, string Email);
 
 namespace Note_Taker2._0
 {
@@ -27,8 +28,9 @@ namespace Note_Taker2._0
         Button btn_creatfolder, btnpop, btnrename;
         int lastexitcode;
         string shell;
-        bool saveLogs;
+        bool saveLogs,isRepo;
         Repository repo;
+        Author auth;
 
         int index1;
         readonly string Assets = "Assets";
@@ -400,12 +402,22 @@ namespace Note_Taker2._0
 
         private void InitSplitPanes()
         {
-            RepositoryStatus rs = repo.RetrieveStatus();
-            StatusEntry[] files = rs.Untracked.ToArray();
-            string[] filecol = ListAllFiles(files);
-            list_branch.Items.AddRange(repo.Branches.ToArray());
-            list_commits.Items.AddRange(repo.Commits.ToArray());
-            list_status.Items.AddRange(filecol);
+            if (Directory.GetDirectories(cwd).Contains(Path.Combine(cwd,".git")))
+            {
+                RepositoryStatus rs = repo.RetrieveStatus();
+                StatusEntry[] files = rs.Untracked.ToArray();
+                string[] filecol = ListAllFiles(files);
+                list_branch.Items.AddRange(repo.Branches.ToArray());
+                list_commits.Items.AddRange(repo.Commits.ToArray());
+                list_status.Items.AddRange(filecol);
+                lbl_branchname.Text = repo.Head.FriendlyName;
+                isRepo = true;
+            }
+            else
+            {
+                lbl_branchname.Text = $"Not a git Repository!";
+                isRepo = false;
+            }
             
         }
 
@@ -602,6 +614,8 @@ namespace Note_Taker2._0
                 return;
             }
 
+            isRepo = false; // Initiate variable.
+
             Read reader = new();
 
 
@@ -626,6 +640,9 @@ namespace Note_Taker2._0
                 string font = reader.GetValue("font");
                 string sizeStr = reader.GetValue("size");
                 string logs = reader.GetValue("saveLogs");
+
+                auth = new(reader.GetValue("gitName"), reader.GetValue("gitEmail"));    
+
                 if (!string.IsNullOrEmpty(font) && int.TryParse(sizeStr, out int size))
                 {
                     rtb_editor.Font = new(font, size);
@@ -765,14 +782,48 @@ namespace Note_Taker2._0
             rtb_log.Hide();
         }
 
-        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        private void button2_Click(object sender, EventArgs e)
         {
-
+            try
+            {
+                repo.Network.Push(repo.Head);
+            }catch(Exception) { }
         }
 
-        private void splitContainer1_Panel1_Paint(object sender, PaintEventArgs e)
+        private void button1_Click(object sender, EventArgs e) // Commit Button
         {
+            try
+            {
+                if (string.IsNullOrEmpty(auth.Name) || string.IsNullOrEmpty(auth.Email))
+                {
+                    MessageBox.Show("Auth Name or Email cannot be empty!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
+                if (!isRepo)
+                {
+                    return;
+                }
+
+                Commands.Stage(repo, "*");
+                repo.Index.Write();
+                Control tb = inputBox.Controls[index1];
+
+                DialogResult res = inputBox.ShowDialog();
+
+                if (res.Equals(DialogResult.OK))
+                {
+                    string msg = tb.Text;
+                    Commit comm = repo.Commit(msg, new(new(auth.Name, auth.Email), DateTimeOffset.Now), new(new(auth.Name, auth.Email), DateTimeOffset.Now));
+
+                    if (comm.IsMissing)
+                    {
+                        MessageBox.Show("Commit Failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+            }
+            catch (Exception) { }
         }
 
         private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)

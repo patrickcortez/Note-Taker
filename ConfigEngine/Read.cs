@@ -21,7 +21,17 @@ namespace Note_Taker2._0.ConfigEngine
 
             if (!File.Exists(cwd))
             {
+                string[] config = @"    
+                shell=powershell
+                font=SergeiUI
+                size=11
+                saveLogs=true
+                gitName=none
+                gitEmail=none
+                "
+                    .Split('\n').Select(line => line.Trim()).ToArray();
                 File.Create(cwd).Dispose();
+                File.WriteAllLines(cwd, config);
             }
 
             Lines = new();
