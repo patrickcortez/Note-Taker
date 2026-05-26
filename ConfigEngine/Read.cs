@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Note_Taker2._0.ConfigEngine
 {
-    
+
     internal class Read
     {
         readonly string configfile = "NT.con";
@@ -18,11 +17,11 @@ namespace Note_Taker2._0.ConfigEngine
 
         public Read()
         {
-            cwd = Path.Combine(AppContext.BaseDirectory,"Assets",configfile);
+            cwd = Path.Combine(AppContext.BaseDirectory, "Assets", configfile);
 
             if (!File.Exists(cwd))
             {
-                File.Create(cwd);
+                File.Create(cwd).Dispose();
             }
 
             Lines = new();
@@ -33,48 +32,48 @@ namespace Note_Taker2._0.ConfigEngine
 
         private void ReadLines()
         {
-            using(StreamReader sr = new(cwd))
+            using (StreamReader sr = new(cwd))
             {
                 string line;
 
-                while((line = sr.ReadLine()) != null)
+                while ((line = sr.ReadLine()) != null)
                 {
                     if (string.IsNullOrWhiteSpace(line))
                     {
                         continue;
                     }
 
-                   // MessageBox.Show($"Line: {line}", "Debug");
+                    // MessageBox.Show($"Line: {line}", "Debug");
                     Lines.Add(line);
                 }
             }
 
-            
+
             InterpretLines();
         }
 
         private void InterpretLines()
         {
             StringBuilder key = new(), value = new();
-            
-            foreach(string line in Lines)
+
+            foreach (string line in Lines)
             {
-               string[] token = line.Split('=');
+                string[] token = line.Split('=');
 
                 if (token.Count() > 0)
                 {
 
-                    if(key.Length > 0 || value.Length > 0)
+                    if (key.Length > 0 || value.Length > 0)
                     {
                         key.Clear(); value.Clear();
                     }
 
-                    
+
 
                     key.Append(token[0]);
                     value.Append(token[1]);
 
-                  //  MessageBox.Show($"Key:{key.ToString()} , Value: {value.ToString()}", "Debug");
+                    //  MessageBox.Show($"Key:{key.ToString()} , Value: {value.ToString()}", "Debug");
 
                     configs.Add(key.ToString(), value.ToString());
                 }
@@ -84,7 +83,7 @@ namespace Note_Taker2._0.ConfigEngine
 
         internal string GetValue(string key)
         {
-            if(configs.Count < 1)
+            if (configs.Count < 1)
             {
                 MessageBox.Show("No configs loaded", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 

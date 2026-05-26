@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Note_Taker2._0
@@ -18,6 +13,7 @@ namespace Note_Taker2._0
         private Process Shell;
         private static string WorkingDirectory;
         static string shell { get; set; }
+        internal string LastInput { get; private set; }
 
 
         internal static void SetWorkingDirectory(string Dir)
@@ -32,6 +28,7 @@ namespace Note_Taker2._0
 
         internal static void GetShell(string Xshell)
         {
+            //MessageBox.Show(Xshell, "Debug", MessageBoxButtons.OK, MessageBoxIcon.Information);
             shell = Xshell;
         }
 
@@ -39,7 +36,7 @@ namespace Note_Taker2._0
         {
             InstalledFontCollection fonts = new();
 
-            foreach(FontFamily font in fonts.Families)
+            foreach (FontFamily font in fonts.Families)
             {
                 if (font.Name.Equals("JetBrains Mono"))
                 {
@@ -48,7 +45,7 @@ namespace Note_Taker2._0
             }
 
             MessageBox.Show("JetBrainsMonoNL Nerd Font not installed! Reverting to Sergei UI", "Warning");
-                
+
             return false;
         }
 
@@ -56,11 +53,14 @@ namespace Note_Taker2._0
         {
             InitializeComponent();
 
+            if (System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime) return;
+
             tb_input.KeyDown += (s, e) => Input_KeyDown(s, e);
             tb_input.TextChanged += (s, e) => Input_TextChange(s, e);
 
-            Console.Font = NLFONT() ? new("JetBrainsMonoNLNerdFont-Light", 11) : new("Sergei UI",8);
+            Console.Font = NLFONT() ? new("JetBrainsMonoNLNerdFont-Light", 11) : new("Sergei UI", 8);
 
+           // MessageBox.Show(shell, "Debug", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             Shell = new()
             {
@@ -69,7 +69,7 @@ namespace Note_Taker2._0
                     FileName = !string.IsNullOrEmpty(shell) ? shell : "cmd",
                     Arguments = "-NoProfile",
                     UseShellExecute = false,
-                    WorkingDirectory = WorkingDirectory != String.Empty ? WorkingDirectory : Environment.GetEnvironmentVariable("USERPROFILE"),
+                    WorkingDirectory = string.IsNullOrEmpty(WorkingDirectory) ? Environment.GetEnvironmentVariable("USERPROFILE") : WorkingDirectory,
                     RedirectStandardOutput = true,
                     RedirectStandardInput = true,
                     RedirectStandardError = true,
@@ -83,27 +83,42 @@ namespace Note_Taker2._0
 
             Shell.OutputDataReceived += (s, e) =>
             {
-                Console.Invoke(() => {
-
-                    Console.AppendText(e.Data + Environment.NewLine);
-                
-                });
+                if (e.Data == null) return;
+                if (!Console.IsHandleCreated || Console.IsDisposed) return;
+                try
+                {
+                    Console.BeginInvoke(new Action(() =>
+                    {
+                        if (!Console.IsDisposed) Console.AppendText(e.Data + Environment.NewLine);
+                    }));
+                } catch { }
             };
 
             Shell.ErrorDataReceived += (s, e) =>
             {
-                Console.Invoke(() => {
-
-                    Console.AppendText("[ERROR]> " + e.Data + Environment.NewLine);
-                });
+                if (e.Data == null) return;
+                if (!Console.IsHandleCreated || Console.IsDisposed) return;
+                try
+                {
+                    Console.BeginInvoke(new Action(() =>
+                    {
+                        if (!Console.IsDisposed) Console.AppendText("[ERROR]> " + e.Data + Environment.NewLine);
+                    }));
+                } catch { }
             };
 
-            Shell.Start();
+            
 
-            Shell.BeginOutputReadLine();
-            Shell.BeginErrorReadLine();
+            this.Load += (s, e) => 
+            {
+                if (System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime) return;
+                Shell.Start();
+                Shell.BeginOutputReadLine();
+                Shell.BeginErrorReadLine();
+            };
 
         }
+
 
         internal void ChangeWorkingDirectory(string dir)
         {
@@ -113,16 +128,17 @@ namespace Note_Taker2._0
 
 
 
-        private void Input_KeyDown(object sender,KeyEventArgs e)
+        private void Input_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 if (tb_input.Text.Equals("exit"))
                 {
-                    MessageBox.Show("Cannot Exit Root Terminal Session!", "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                    MessageBox.Show("Cannot Exit Root Terminal Session!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
+                
+                LastInput = tb_input.Text;
                 Shell.StandardInput.WriteLine(tb_input.Text);
                 Shell.StandardInput.Flush();
 
@@ -136,7 +152,7 @@ namespace Note_Taker2._0
             }
         }
 
-        private void Input_TextChange(object sender,EventArgs e)
+        private void Input_TextChange(object sender, EventArgs e)
         {
 
         }

@@ -9,7 +9,7 @@ namespace Note_Taker2._0.Components
         public string FileName;
         public string FilePath;
 
-        public FileContent(string Name,List<string> Buffer,string FileP)
+        public FileContent(string Name, List<string> Buffer, string FileP)
         {
             FileName = Name;
             FileBuffer = new(Buffer);
@@ -28,7 +28,7 @@ namespace Note_Taker2._0.Components
 
         public void AddLines(string[] lines)
         {
-            if(lines.Count() < 2)
+            if (lines.Count() < 2)
             {
                 return;
             }
@@ -38,7 +38,7 @@ namespace Note_Taker2._0.Components
 
         private bool LineExists(string line)
         {
-            foreach(string l in FileBuffer)
+            foreach (string l in FileBuffer)
             {
                 if (l.Equals(line))
                 {
@@ -66,5 +66,5 @@ namespace Note_Taker2._0.Components
         }
     }
 
- 
+
 }

@@ -1,4 +1,6 @@
-﻿namespace Note_Taker2._0
+﻿using System.Runtime.CompilerServices;
+
+namespace Note_Taker2._0
 {
     partial class Form1
     {
@@ -19,6 +21,8 @@
             }
             base.Dispose(disposing);
         }
+
+        
 
         #region Windows Form Designer generated code
 
@@ -43,8 +47,22 @@
             this.FolderView = new System.Windows.Forms.TreeView();
             this.lbl_dir = new System.Windows.Forms.Label();
             this.rtb_editor = new System.Windows.Forms.RichTextBox();
+            this.rtb_log = new System.Windows.Forms.RichTextBox();
+            this.rb_terminal = new System.Windows.Forms.RadioButton();
+            this.rb_logs = new System.Windows.Forms.RadioButton();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.rb_Repo = new System.Windows.Forms.RadioButton();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.list_branch = new System.Windows.Forms.ListBox();
+            this.list_commits = new System.Windows.Forms.ListBox();
+            this.list_status = new System.Windows.Forms.ListBox();
             this.terminal1 = new Note_Taker2._0.Terminal();
             this.menuStrip1.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -116,7 +134,6 @@
             this.appearanceToolStripMenuItem.Name = "appearanceToolStripMenuItem";
             this.appearanceToolStripMenuItem.Size = new System.Drawing.Size(73, 26);
             this.appearanceToolStripMenuItem.Text = "Configs";
-            this.appearanceToolStripMenuItem.Click += new System.EventHandler(this.appearanceToolStripMenuItem_Click);
             // 
             // editSettingsToolStripMenuItem
             // 
@@ -157,7 +174,7 @@
             this.FolderView.HotTracking = true;
             this.FolderView.Location = new System.Drawing.Point(15, 54);
             this.FolderView.Name = "FolderView";
-            this.FolderView.Size = new System.Drawing.Size(184, 462);
+            this.FolderView.Size = new System.Drawing.Size(184, 338);
             this.FolderView.TabIndex = 3;
             this.FolderView.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.FolderView_NodeMouseClick);
             // 
@@ -182,35 +199,164 @@
             this.rtb_editor.ForeColor = System.Drawing.Color.White;
             this.rtb_editor.Location = new System.Drawing.Point(237, 53);
             this.rtb_editor.Name = "rtb_editor";
-            this.rtb_editor.Size = new System.Drawing.Size(1273, 462);
+            this.rtb_editor.Size = new System.Drawing.Size(1273, 339);
             this.rtb_editor.TabIndex = 0;
             this.rtb_editor.Text = "";
+            // 
+            // rtb_log
+            // 
+            this.rtb_log.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rtb_log.BackColor = System.Drawing.Color.DimGray;
+            this.rtb_log.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.rtb_log.ForeColor = System.Drawing.Color.White;
+            this.rtb_log.Location = new System.Drawing.Point(0, 441);
+            this.rtb_log.Name = "rtb_log";
+            this.rtb_log.ReadOnly = true;
+            this.rtb_log.Size = new System.Drawing.Size(1522, 316);
+            this.rtb_log.TabIndex = 8;
+            this.rtb_log.Text = "";
+            // 
+            // rb_terminal
+            // 
+            this.rb_terminal.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rb_terminal.AutoSize = true;
+            this.rb_terminal.BackColor = System.Drawing.Color.Silver;
+            this.rb_terminal.Checked = true;
+            this.rb_terminal.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.rb_terminal.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.rb_terminal.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rb_terminal.Location = new System.Drawing.Point(6, 18);
+            this.rb_terminal.Name = "rb_terminal";
+            this.rb_terminal.Size = new System.Drawing.Size(98, 21);
+            this.rb_terminal.TabIndex = 6;
+            this.rb_terminal.TabStop = true;
+            this.rb_terminal.Text = "Terminal";
+            this.rb_terminal.UseVisualStyleBackColor = false;
+            this.rb_terminal.CheckedChanged += new System.EventHandler(this.rb_terminal_CheckedChanged);
+            // 
+            // rb_logs
+            // 
+            this.rb_logs.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rb_logs.AutoSize = true;
+            this.rb_logs.BackColor = System.Drawing.Color.Silver;
+            this.rb_logs.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.rb_logs.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.rb_logs.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rb_logs.Location = new System.Drawing.Point(110, 19);
+            this.rb_logs.Name = "rb_logs";
+            this.rb_logs.Size = new System.Drawing.Size(71, 21);
+            this.rb_logs.TabIndex = 7;
+            this.rb_logs.Text = "Logs";
+            this.rb_logs.UseVisualStyleBackColor = false;
+            this.rb_logs.CheckedChanged += new System.EventHandler(this.rb_logs_CheckedChanged);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.BackColor = System.Drawing.Color.Silver;
+            this.groupBox1.Controls.Add(this.rb_Repo);
+            this.groupBox1.Controls.Add(this.rb_logs);
+            this.groupBox1.Controls.Add(this.rb_terminal);
+            this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox1.Location = new System.Drawing.Point(0, 398);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(1522, 45);
+            this.groupBox1.TabIndex = 9;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Options";
+            // 
+            // rb_Repo
+            // 
+            this.rb_Repo.AutoSize = true;
+            this.rb_Repo.Location = new System.Drawing.Point(187, 18);
+            this.rb_Repo.Name = "rb_Repo";
+            this.rb_Repo.Size = new System.Drawing.Size(104, 20);
+            this.rb_Repo.TabIndex = 8;
+            this.rb_Repo.TabStop = true;
+            this.rb_Repo.Text = "Repository";
+            this.rb_Repo.UseVisualStyleBackColor = true;
+            this.rb_Repo.CheckedChanged += new System.EventHandler(this.rb_Repo_CheckedChanged);
+            // 
+            // splitContainer1
+            // 
+            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.Location = new System.Drawing.Point(0, 441);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.list_commits);
+            this.splitContainer1.Panel1.Controls.Add(this.list_branch);
+            this.splitContainer1.Panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.splitContainer1_Panel1_Paint);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.list_status);
+            this.splitContainer1.Size = new System.Drawing.Size(1522, 316);
+            this.splitContainer1.SplitterDistance = 507;
+            this.splitContainer1.TabIndex = 10;
+            this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
+            // 
+            // list_branch
+            // 
+            this.list_branch.FormattingEnabled = true;
+            this.list_branch.ItemHeight = 16;
+            this.list_branch.Location = new System.Drawing.Point(0, 3);
+            this.list_branch.Name = "list_branch";
+            this.list_branch.Size = new System.Drawing.Size(504, 180);
+            this.list_branch.TabIndex = 0;
+            // 
+            // list_commits
+            // 
+            this.list_commits.FormattingEnabled = true;
+            this.list_commits.ItemHeight = 16;
+            this.list_commits.Location = new System.Drawing.Point(0, 189);
+            this.list_commits.Name = "list_commits";
+            this.list_commits.Size = new System.Drawing.Size(504, 116);
+            this.list_commits.TabIndex = 1;
+            // 
+            // list_status
+            // 
+            this.list_status.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.list_status.FormattingEnabled = true;
+            this.list_status.ItemHeight = 16;
+            this.list_status.Location = new System.Drawing.Point(0, 0);
+            this.list_status.Name = "list_status";
+            this.list_status.Size = new System.Drawing.Size(1011, 316);
+            this.list_status.TabIndex = 1;
             // 
             // terminal1
             // 
             this.terminal1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.terminal1.AutoScroll = true;
-            this.terminal1.BackColor = System.Drawing.Color.Silver;
-            this.terminal1.Location = new System.Drawing.Point(0, 522);
+            this.terminal1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.terminal1.BackColor = System.Drawing.Color.Transparent;
+            this.terminal1.Location = new System.Drawing.Point(0, 441);
             this.terminal1.Name = "terminal1";
-            this.terminal1.Size = new System.Drawing.Size(1522, 277);
+            this.terminal1.Size = new System.Drawing.Size(1522, 316);
             this.terminal1.TabIndex = 5;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.AutoSize = true;
-            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-            this.ClientSize = new System.Drawing.Size(1522, 799);
-            this.Controls.Add(this.terminal1);
+            this.ClientSize = new System.Drawing.Size(1522, 752);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lbl_dir);
             this.Controls.Add(this.FolderView);
             this.Controls.Add(this.lbl_filename);
             this.Controls.Add(this.rtb_editor);
             this.Controls.Add(this.menuStrip1);
+            this.Controls.Add(this.terminal1);
+            this.Controls.Add(this.rtb_log);
+            this.Controls.Add(this.splitContainer1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.Text = "NoteTaker";
@@ -219,6 +365,12 @@
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseClick);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -235,12 +387,21 @@
         private System.Windows.Forms.TreeView FolderView;
         private System.Windows.Forms.Label lbl_dir;
         private System.Windows.Forms.RichTextBox rtb_editor;
-        private Terminal terminal1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem appearanceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editSettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem AboutMenuItem1;
         private System.Windows.Forms.ToolStripComboBox toolStripComboBox1;
+        private System.Windows.Forms.RichTextBox rtb_log;
+        private Terminal terminal1;
+        private System.Windows.Forms.RadioButton rb_terminal;
+        private System.Windows.Forms.RadioButton rb_logs;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.RadioButton rb_Repo;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.ListBox list_commits;
+        private System.Windows.Forms.ListBox list_branch;
+        private System.Windows.Forms.ListBox list_status;
     }
 }
 

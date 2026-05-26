@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Note_Taker2._0
@@ -60,7 +56,7 @@ namespace Note_Taker2._0
 
             ts_control.Items.Add(ts);
 
-            if(Files.Count < 1) // Empty Dict guard clause
+            if (Files.Count < 1) // Empty Dict guard clause
             {
                 Files.Add(filepath, richTextBox1.Lines.ToList());
                 return;
@@ -78,7 +74,7 @@ namespace Note_Taker2._0
                     Files[filepath] = richTextBox1.Lines.ToList();
                 }
             }
-            
+
         }
 
         // Discontinued

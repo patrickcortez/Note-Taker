@@ -1,4 +1,4 @@
-﻿using Note_Taker2._0.Components;
+using Note_Taker2._0.Components;
 using Note_Taker2._0.ConfigEngine;
 using System;
 using System.Collections.Generic;
@@ -7,29 +7,35 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
+using LibGit2Sharp;
 using System.Windows.Forms;
 using static Note_Taker2._0.Components.Utils.Utility;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Note_Taker2._0
 {
-    
+
     public partial class Form1 : Form
     {
-        string cwd,currentNodePath;
+        string cwd, currentNodePath;
         List<FileContent> Files;
         List<string> currentbuffer;
         Panel popup;
         Form inputBox;
         Button btn_createfile;
-        Button btn_creatfolder,btnpop,btnrename;
+        Button btn_creatfolder, btnpop, btnrename;
         int lastexitcode;
-        
+        string shell;
+        bool saveLogs;
+        Repository repo;
+
         int index1;
         readonly string Assets = "Assets";
 
         private string GetAssets()
         {
-            return Path.Combine(AppContext.BaseDirectory,Assets);
+            return Path.Combine(AppContext.BaseDirectory, Assets);
         }
 
         private void UpdateTreeview()
@@ -38,7 +44,7 @@ namespace Note_Taker2._0
             InitializeTreeview();
         }
 
-        public DialogResult Announce(string msg,MessageBoxButtons btn)
+        public DialogResult Announce(string msg, MessageBoxButtons btn)
         {
             return MessageBox.Show(msg, "Note Taker", btn, MessageBoxIcon.Asterisk);
         }
@@ -53,13 +59,14 @@ namespace Note_Taker2._0
                 BackColor = Color.DarkGray,
                 ForeColor = Color.White,
                 BorderStyle = BorderStyle.Fixed3D
-
+                
 
             };
 
+            
 
-
-            inputBox = new() {
+            inputBox = new()
+            {
                 Size = new(200, 200),
                 Name = "InputBox",
                 BackColor = Color.Azure,
@@ -97,7 +104,7 @@ namespace Note_Taker2._0
                 Location = new(5, 5),
                 Visible = true,
                 ForeColor = Color.Black,
-                Font = new("Arial", 8,FontStyle.Bold)
+                Font = new("Arial", 8, FontStyle.Bold)
 
             };
 
@@ -117,7 +124,7 @@ namespace Note_Taker2._0
                 Location = new(5, 0)
             };
 
-            btn_createfile.Click += (s, e) => CreateFile_click(s,e);
+            btn_createfile.Click += (s, e) => CreateFile_click(s, e);
 
             btn_creatfolder = new()
             {
@@ -134,7 +141,7 @@ namespace Note_Taker2._0
                 Text = "Delete",
                 Enabled = true,
                 Size = new(190, 30),
-                Location = new(5,(btn_creatfolder.Height * 2) + 5)
+                Location = new(5, (btn_creatfolder.Height * 2) + 5)
             };
 
             btnpop.Click += (s, e) =>
@@ -175,9 +182,10 @@ namespace Note_Taker2._0
 
                         File.Delete(path);
                         UpdateTreeview();
-                        Announce($"{path} Deleted Successfully",MessageBoxButtons.OK);
+                        Announce($"{path} Deleted Successfully", MessageBoxButtons.OK);
                     }
-                }catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
@@ -216,7 +224,8 @@ namespace Note_Taker2._0
                             UpdateTreeview();
                         }
                     }
-                }catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
@@ -228,29 +237,29 @@ namespace Note_Taker2._0
                 {
                     inputBox.DialogResult = DialogResult.OK;
                     inputBox.Close();
-                   
+
                 }
             };
 
             accept.Click += (s, e) =>
             {
                 popup.Hide();
-            
+
             };
 
-            Control[] cons = { input, lb,accept,header };
+            Control[] cons = { input, lb, accept, header };
             inputBox.Controls.AddRange(cons);
 
             index1 = inputBox.Controls.IndexOf(input);
         }
 
-        public void CreateFile_click(object sender,EventArgs e)
+        public void CreateFile_click(object sender, EventArgs e)
         {
             try
             {
                 TreeNode node = FolderView.SelectedNode;
                 Control tb = inputBox.Controls[index1];
-                
+
                 string path = node.Tag.ToString();
 
                 if (!Directory.Exists(path))
@@ -258,20 +267,22 @@ namespace Note_Taker2._0
                     return;
                 }
 
-                if (inputBox.ShowDialog() == DialogResult.OK){
+                if (inputBox.ShowDialog() == DialogResult.OK)
+                {
 
                     File.Create(Path.Combine(path, tb.Text)).Dispose();
                     FolderView.Nodes.Clear();
                     InitializeTreeview(); //Update Tree view
-                    
+
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
-                MessageBox.Show($"{ex.Message} | {ex.StackTrace}","Exception",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show($"{ex.Message} | {ex.StackTrace}", "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        public void CreateFolder_Click(object sender,EventArgs e)
+        public void CreateFolder_Click(object sender, EventArgs e)
         {
             try
             {
@@ -291,48 +302,34 @@ namespace Note_Taker2._0
                     FolderView.Nodes.Clear();
                     InitializeTreeview();
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
         }
 
-        
+        private void SetupLogs()
+        {
+            rtb_log.AppendText("Logs:" + Environment.NewLine);
+        }
 
         public Form1()
         {
-            try
+            Read reader = new();
+            Terminal.SetWorkingDirectory(cwd);
+            string shell = reader.GetValue("shell");
+
+
+            if (!string.IsNullOrEmpty(shell))
             {
-                if (!Directory.Exists(GetAssets())){
-                    Directory.CreateDirectory(GetAssets());
-                }
-
-                this.Icon = new Icon(Path.Combine(GetAssets(), "NTIcon.ico"));
-
-                Read reader = new();
-                Terminal.SetWorkingDirectory(cwd);
-                string shell = reader.GetValue("shell");
-                //MessageBox.Show(shell, "Debug");
 
                 Terminal.GetShell(shell);
-
-                InitializeComponent();
-                InitializeLabels();
-                InitiateControls(); // Initiallize our Controls
-                InitComboBox();
-                rtb_editor.Font = new(reader.GetValue("font"),int.Parse(reader.GetValue("size")));
-
-                Files = new();
-                currentbuffer = new();
-
-                Controls.Add(popup);
-
-                popup.Controls.AddRange(new[] { btn_createfile,btn_creatfolder,btnrename,btnpop });
-            }catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+
+            InitializeComponent();
+
         }
 
         private void InitializeTreeview()
@@ -341,11 +338,9 @@ namespace Note_Taker2._0
             Root.Tag = cwd;
             FolderView.Nodes.Add(Root);
 
-            AddNode(cwd,Root);
+            AddNode(cwd, Root);
 
             Root.Expand();
-
-            
         }
 
         private void InitializeLabels()
@@ -355,9 +350,9 @@ namespace Note_Taker2._0
         }
 
 
-        private void AddNode(string path,TreeNode ParentNode)
+        private void AddNode(string path, TreeNode ParentNode)
         {
-            foreach(string item in Directory.GetFileSystemEntries(path))
+            foreach (string item in Directory.GetFileSystemEntries(path))
             {
                 string name = Path.GetFileName(item);
                 bool isDir = File.GetAttributes(item).HasFlag(FileAttributes.Directory);
@@ -390,11 +385,42 @@ namespace Note_Taker2._0
             }
         }
 
+        private string[] ListAllFiles(StatusEntry[] files)
+        {
+            List<string> xFiles = new();
+
+            foreach(StatusEntry file in files)
+            {
+                xFiles.Add(Path.GetFileName(file.FilePath));
+            }
+
+            return xFiles.ToArray();
+
+        }
+
+        private void InitSplitPanes()
+        {
+            RepositoryStatus rs = repo.RetrieveStatus();
+            StatusEntry[] files = rs.Untracked.ToArray();
+            string[] filecol = ListAllFiles(files);
+            list_branch.Items.AddRange(repo.Branches.ToArray());
+            list_commits.Items.AddRange(repo.Commits.ToArray());
+            list_status.Items.AddRange(filecol);
+            
+        }
+
+        private void ClearPane()
+        {
+            list_branch.Items.Clear();
+            list_commits.Items.Clear();
+            list_status.Items.Clear();
+        }
+
         private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                FolderView.Nodes.Clear();
+
                 FolderBrowserDialog open = new FolderBrowserDialog
                 {
                     ShowNewFolderButton = true
@@ -404,6 +430,8 @@ namespace Note_Taker2._0
 
                 if (res.Equals(DialogResult.OK))
                 {
+                    FolderView.Nodes.Clear();
+                    ClearPane();
                     cwd = open.SelectedPath;
                     if (Directory.Exists(cwd))
                     {
@@ -412,11 +440,14 @@ namespace Note_Taker2._0
                     }
 
                     terminal1.ChangeWorkingDirectory(open.SelectedPath);
+                    repo = new(cwd);
+                    InitSplitPanes();
+                    rtb_log.AppendText($"> Opened Folder: {open.SelectedPath} " + Environment.NewLine);
                 }
 
             }
-            catch (DirectoryNotFoundException) { }
-            
+            catch (DirectoryNotFoundException) {  }
+
         }
 
         private void ShowPopup(MouseEventArgs e)
@@ -424,6 +455,8 @@ namespace Note_Taker2._0
             popup.Location = e.Location;
             popup.BringToFront();
             popup.Show();
+
+           
         }
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
@@ -445,32 +478,33 @@ namespace Note_Taker2._0
         {
             try
             {
-                
+
                 string fullpath = e.Node.Tag.ToString();
+                rtb_log.AppendText($"> Editing {fullpath}" + Environment.NewLine);
 
                 if (currentbuffer.Count > 0 && rtb_editor.Lines.Count() > 0 && FileModified(currentbuffer, rtb_editor.Lines.ToList()))
                 {
-                    DialogResult res = MessageBox.Show("Do you want to save your changes?", "File Information",MessageBoxButtons.YesNo,MessageBoxIcon.Question);
+                    DialogResult res = MessageBox.Show("Do you want to save your changes?", "File Information", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-                    if(res == DialogResult.Yes)
+                    if (res == DialogResult.Yes)
                     {
                         saveToolStripMenuItem.PerformClick();
-                        
+
                     }
                 }
 
-                
+
 
 
                 if (File.GetAttributes(fullpath).HasFlag(FileAttributes.Directory))
                 {
-                  //  MessageBox.Show($"{e.Node.Text.ToString()} is not a File!", "Exception", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    //  MessageBox.Show($"{e.Node.Text.ToString()} is not a File!", "Exception", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (Path.GetExtension(fullpath).Equals(".exe"))
                 {
-                  //  MessageBox.Show(fullpath);
+                    //  MessageBox.Show(fullpath);
                     Process exe = new()
                     {
                         StartInfo = new()
@@ -478,18 +512,21 @@ namespace Note_Taker2._0
                             FileName = fullpath,
                             UseShellExecute = true,
                             WindowStyle = ProcessWindowStyle.Normal
-                        }
-                    };
+                        },
+
+                    }; ;
 
                     exe.Start();
                     exe.WaitForExit();
 
                     lastexitcode = exe.ExitCode;
 
+                    rtb_log.AppendText($"Process: {fullpath} | Exited with {lastexitcode}" + Environment.NewLine);
+
                     return;
                 }
 
-                    if (rtb_editor.Text.Length < 1)
+                if (rtb_editor.Text.Length < 1)
                 {
                     if (lbl_filename.Text == "None")
                     {
@@ -497,18 +534,18 @@ namespace Note_Taker2._0
                     }
 
                     lbl_filename.Text = e.Node.Text.ToString();
-                    rtb_editor.LoadFile(fullpath,RichTextBoxStreamType.PlainText);
+                    rtb_editor.LoadFile(fullpath, RichTextBoxStreamType.PlainText);
                     currentbuffer.AddRange(rtb_editor.Lines);
                 }
                 else
                 {
                     bool shouldAdd = true;
                     currentbuffer.Clear();
-                    if(Files.Count >= 1)
+                    if (Files.Count >= 1)
                     {
-                        foreach(FileContent con in Files)
+                        foreach (FileContent con in Files)
                         {
-                            if(con.FilePath == fullpath)
+                            if (con.FilePath == fullpath)
                             {
                                 shouldAdd = false;
                             }
@@ -517,15 +554,15 @@ namespace Note_Taker2._0
 
                     if (shouldAdd.Equals(true))
                     {
-                        Files.Add(new FileContent(lbl_filename.Text, rtb_editor.Lines.ToList(),currentNodePath));
+                        Files.Add(new FileContent(lbl_filename.Text, rtb_editor.Lines.ToList(), currentNodePath));
                     }
-                    
+
                     rtb_editor.Clear(); //Store then clear
 
                     lbl_filename.Text = e.Node.Text.ToString();
 
-                   foreach(FileContent con in Files) // check if the file has an unsaved buffer.
-                   {
+                    foreach (FileContent con in Files) // check if the file has an unsaved buffer.
+                    {
                         if (fullpath.Equals(con.FilePath))
                         {
                             rtb_editor.Lines = con.GetLines().ToArray();
@@ -533,14 +570,15 @@ namespace Note_Taker2._0
                             currentNodePath = fullpath;
                             return;
                         }
-                   }
+                    }
 
                     rtb_editor.LoadFile(fullpath, RichTextBoxStreamType.PlainText);
                     currentbuffer.AddRange(rtb_editor.Lines);
                     currentNodePath = fullpath;
 
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show($"{ex.Message} | {ex.StackTrace}", "Exception", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
@@ -550,8 +588,8 @@ namespace Note_Taker2._0
         {
             toolStripComboBox1.Text = "Sergei UI";
             InstalledFontCollection fonts = new();
-            
-            foreach(FontFamily font in fonts.Families)
+
+            foreach (FontFamily font in fonts.Families)
             {
                 toolStripComboBox1.Items.Add(font.Name);
             }
@@ -559,12 +597,63 @@ namespace Note_Taker2._0
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+            if (System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime)
+            {
+                return;
+            }
+
+            Read reader = new();
+
+
+                SetupLogs();
+                InitializeLabels();
+                InitiateControls(); // Initiallize our Controls
+                InitComboBox();
+
+                if (!Directory.Exists(GetAssets()))
+                {
+                    Directory.CreateDirectory(GetAssets());
+                }
+
+                string iconPath = Path.Combine(GetAssets(), "NTIcon.ico");
+                if (File.Exists(iconPath))
+                {
+                    this.Icon = new Icon(iconPath);
+                }
+
+                rtb_log.AppendText($">Shell: {shell} initiated..." + Environment.NewLine);
+
+                string font = reader.GetValue("font");
+                string sizeStr = reader.GetValue("size");
+                string logs = reader.GetValue("saveLogs");
+                if (!string.IsNullOrEmpty(font) && int.TryParse(sizeStr, out int size))
+                {
+                    rtb_editor.Font = new(font, size);
+                }
+
+                if (!string.IsNullOrEmpty(logs))
+                {
+                    if (bool.TryParse(logs,out bool save))
+                    {
+                        saveLogs = save;
+                    }
+                }
+
+                Files = new();
+                currentbuffer = new();
+
+                Controls.Add(popup);
+
+                popup.Controls.AddRange(new[] { btn_createfile, btn_creatfolder, btnrename, btnpop });
+                terminal1.tb_input.KeyDown += terminal1_KeyDown;
+                
+                
+                
         }
 
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(Files.Count < 1)
+            if (Files.Count < 1)
             {
                 saveAllToolStripMenuItem.Enabled = false;
             }
@@ -577,7 +666,7 @@ namespace Note_Taker2._0
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string fullpath;
-            if(FolderView.Nodes.Count < 1)
+            if (FolderView.Nodes.Count < 1)
             {
                 fullpath = Path.GetFullPath(lbl_filename.Text);
             }
@@ -585,13 +674,15 @@ namespace Note_Taker2._0
             {
                 fullpath = FolderView.SelectedNode.Tag.ToString();
             }
-            using(StreamWriter sw = new(fullpath,false))
+            using (StreamWriter sw = new(fullpath, false))
             {
-                foreach(string line in rtb_editor.Lines)
+                foreach (string line in rtb_editor.Lines)
                 {
                     sw.WriteLine(line);
                 }
             }
+
+            rtb_log.AppendText($"> Saved {fullpath}" + Environment.NewLine);
         }
 
 
@@ -625,25 +716,7 @@ namespace Note_Taker2._0
             MessageBox.Show(Msg, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void appearanceToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            
-        }
 
-        private void testToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            TabbedRichTextBox tbr = new() { Dock = DockStyle.Fill };
-
-            Form nF = new() {
-                Size = new(200,200)
-                
-            };
-
-            TabbedRichTextBox.Node = FolderView.SelectedNode;
-
-            nF.Controls.Add(tbr);
-            nF.Show();
-        }
 
         private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -656,24 +729,72 @@ namespace Note_Taker2._0
             }
         }
 
+        private void rb_terminal_CheckedChanged(object sender, EventArgs e)
+        {
+            terminal1.Show();
+            rtb_log.Hide();
+            splitContainer1.Hide();
+        }
+
+        private void rb_logs_CheckedChanged(object sender, EventArgs e)
+        {
+            rtb_log.Show();
+            terminal1.Hide();
+            splitContainer1.Hide();
+            
+        }
+
+
+        int count = 1;
+
+        private void terminal1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode.Equals(Keys.Enter))
+            {
+                rtb_log.AppendText($"CMD [{count}]> {terminal1.LastInput}" + Environment.NewLine);
+                count++;
+            }
+        }
+
+
+
+        private void rb_Repo_CheckedChanged(object sender, EventArgs e)
+        {
+            splitContainer1.Show();
+            terminal1.Hide();
+            rtb_log.Hide();
+        }
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+
+        }
+
+        private void splitContainer1_Panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
         private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
-                foreach (FileContent con in Files)
+            foreach (FileContent con in Files)
+            {
+                using (StreamWriter sw = new(con.FilePath, false))
                 {
-                    using (StreamWriter sw = new(con.FilePath, false))
+                    foreach (string line in con.GetLines())
                     {
-                        foreach (string line in con.GetLines())
-                        {
 
-                            sw.WriteLine(line);
+                        sw.WriteLine(line);
 
-                        }
                     }
                 }
 
+                rtb_log.AppendText($"> Saved {con.FileName}" + Environment.NewLine);
+            }
+
             Files.Clear();
-            
+
         }
 
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -688,14 +809,16 @@ namespace Note_Taker2._0
             file.ShowDialog();
 
             lbl_filename.Text = file.FileName;
-            rtb_editor.LoadFile(Path.GetFullPath(file.FileName),RichTextBoxStreamType.PlainText);
+            rtb_editor.LoadFile(Path.GetFullPath(file.FileName), RichTextBoxStreamType.PlainText);
+
+            rtb_log.AppendText($"Opened File: {file.FileName} " + Environment.NewLine);
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
             {
-                if (FileModified(currentbuffer,rtb_editor.Lines.ToList())) // Ensure that the file IS modified rather than basing it on string length
+                if (FileModified(currentbuffer, rtb_editor.Lines.ToList())) // Ensure that the file IS modified rather than basing it on string length
                 {
 
                     DialogResult res = MessageBox.Show("Do you want to save your changes?", "File Information", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -712,9 +835,31 @@ namespace Note_Taker2._0
                     }
                 }
 
-                
+                if (saveLogs)
+                {
 
-            }catch(Exception ex)
+                    
+                    string now = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+
+                    string logpath = Path.Combine(AppContext.BaseDirectory, "Assets", $"Log-{now}.log");
+
+                    MessageBox.Show(logpath);
+
+                    File.Create(logpath).Close();
+
+                    using(StreamWriter sw = new(logpath,true))
+                    {
+                        foreach(string line in rtb_log.Lines)
+                        {
+                            sw.WriteLine(line);
+                        }
+                    }
+
+
+                }
+
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
