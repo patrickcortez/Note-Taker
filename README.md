@@ -11,6 +11,8 @@ It's current capabilities is relatively simple:
  - File & Multi-File Saving
  - Integrated Terminal (*PowerShell*)
  - Directory Tree View
+ - Logging
+ - Repository Management (*Git*)
  
  With These features. We ensure that your experience is somewhat
  smooth and manageable. More features will come in the future.
