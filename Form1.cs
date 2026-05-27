@@ -321,19 +321,20 @@ namespace Note_Taker2._0
         {
             Read reader = new();
             Terminal.SetWorkingDirectory(cwd);
-            string shell = reader.GetValue("shell");
+            string xshell = reader.GetValue("shell");
 
 
-            if (!string.IsNullOrEmpty(shell))
+            if (!string.IsNullOrEmpty(xshell))
             {
-
-                Terminal.GetShell(shell);
+                shell = xshell;
+                Terminal.GetShell(xshell);
             }
             
 
 
             InitializeComponent();
             this.DoubleBuffered = true;
+ 
         }
 
         private void InitializeTreeview()
