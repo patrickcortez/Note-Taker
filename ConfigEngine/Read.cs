@@ -1,13 +1,19 @@
+using Note_Taker2._0.Components.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Forms;
 
 namespace Note_Taker2._0.ConfigEngine
 {
-
+    
+    public static class Extensions
+    {
+        public static bool isWhiteSpaceorNull(this string? str) => string.IsNullOrWhiteSpace(str);
+    }
     internal class Read
     {
         readonly string configfile = "NT.con";
@@ -48,7 +54,7 @@ namespace Note_Taker2._0.ConfigEngine
 
                 while ((line = sr.ReadLine()) != null)
                 {
-                    if (string.IsNullOrWhiteSpace(line))
+                    if (line.isWhiteSpaceorNull())
                     {
                         continue;
                     }
@@ -68,7 +74,7 @@ namespace Note_Taker2._0.ConfigEngine
 
             foreach (string line in Lines)
             {
-                string[] token = line.Split('=');
+                string[] token = Utility.Tokenize(line,'=');
 
                 if (token.Count() > 0)
                 {
