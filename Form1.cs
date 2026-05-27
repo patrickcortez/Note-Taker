@@ -329,9 +329,11 @@ namespace Note_Taker2._0
 
                 Terminal.GetShell(shell);
             }
+            
+
 
             InitializeComponent();
-
+            this.DoubleBuffered = true;
         }
 
         private void InitializeTreeview()
@@ -607,11 +609,20 @@ namespace Note_Taker2._0
             }
         }
 
+        
+
         private void Form1_Load(object sender, EventArgs e)
         {
             if (System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime)
             {
                 return;
+            }
+
+            if (!GitExists()) // Check if git exists
+            {
+                MessageBox.Show("Git is not installed, Repo Management is disabled","Git Check",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                rb_Repo.Enabled = false;
+                rb_Repo.Visible = false;
             }
 
             isRepo = false; // Initiate variable.

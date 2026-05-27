@@ -84,7 +84,7 @@ namespace Note_Taker2._0
             Shell.OutputDataReceived += (s, e) =>
             {
                 if (e.Data == null) return;
-                if (!Console.IsHandleCreated || Console.IsDisposed) return;
+                if (!Console.IsHandleCreated || Console.IsDisposed) return; //Guard rail
                 try
                 {
                     Console.BeginInvoke(new Action(() =>
