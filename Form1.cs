@@ -405,21 +405,27 @@ namespace Note_Taker2._0
 
         private void InitSplitPanes()
         {
-            if (Directory.GetDirectories(cwd).Contains(Path.Combine(cwd,".git")))
+            try
             {
-                RepositoryStatus rs = repo.RetrieveStatus();
-                StatusEntry[] files = rs.Untracked.ToArray();
-                string[] filecol = ListAllFiles(files);
-                list_branch.Items.AddRange(repo.Branches.ToArray());
-                list_commits.Items.AddRange(repo.Commits.ToArray());
-                list_status.Items.AddRange(filecol);
-                lbl_branchname.Text = repo.Head.FriendlyName;
-                isRepo = true;
-            }
-            else
+                if (Directory.GetDirectories(cwd).Contains(Path.Combine(cwd, ".git")))
+                {
+                    RepositoryStatus rs = repo.RetrieveStatus();
+                    StatusEntry[] files = rs.Untracked.ToArray();
+                    string[] filecol = ListAllFiles(files);
+                    list_branch.Items.AddRange(repo.Branches.ToArray());
+                    list_commits.Items.AddRange(repo.Commits.ToArray());
+                    list_status.Items.AddRange(filecol);
+                    lbl_branchname.Text = repo.Head.FriendlyName;
+                    isRepo = true;
+                }
+                else
+                {
+                    lbl_branchname.Text = $"Not a git Repository!";
+                    isRepo = false;
+                }
+            }catch(Exception ex)
             {
-                lbl_branchname.Text = $"Not a git Repository!";
-                isRepo = false;
+                MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             
         }
