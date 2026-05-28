@@ -1,3 +1,4 @@
+using LibGit2Sharp;
 using Note_Taker2._0.Components;
 using Note_Taker2._0.ConfigEngine;
 using System;
@@ -7,15 +8,16 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
-using LibGit2Sharp;
+using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 using static Note_Taker2._0.Components.Utils.Utility;
-using System.Security.Cryptography;
-using System.Text;
 using Author = (string Name, string Email);
 
 namespace Note_Taker2._0
 {
+
 
     public partial class Form1 : Form
     {
@@ -31,6 +33,7 @@ namespace Note_Taker2._0
         bool saveLogs,isRepo;
         Repository repo;
         Author auth;
+        List<Theme> Themes;
 
         int index1;
         readonly string Assets = "Assets";
@@ -113,7 +116,7 @@ namespace Note_Taker2._0
             Button accept = new()
             {
                 Text = "Ok",
-                TextAlign = ContentAlignment.MiddleCenter,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
                 Size = new(100, 40),
                 Location = new(50, 100),
                 DialogResult = DialogResult.OK
@@ -641,6 +644,7 @@ namespace Note_Taker2._0
                 InitializeLabels();
                 InitiateControls(); // Initiallize our Controls
                 InitComboBox();
+                InitThemes();
 
                 if (!Directory.Exists(GetAssets()))
                 {
@@ -658,6 +662,13 @@ namespace Note_Taker2._0
                 string font = reader.GetValue("font");
                 string sizeStr = reader.GetValue("size");
                 string logs = reader.GetValue("saveLogs");
+                string theme = reader.GetValue("theme");
+
+                if(theme != "none")
+                {
+                    Theme current = FindTheme(theme);
+                    ChangeControlThemes(current);
+                }
 
                 auth = new(reader.GetValue("gitName"), reader.GetValue("gitEmail"));    
 
@@ -866,6 +877,92 @@ namespace Note_Taker2._0
 
         }
 
+        private void ChangeControlThemes(Theme current)
+        {
+            rtb_editor.ChangeColors(current);
+            FolderView.ChangeColors(current);
+            menuStrip1.ChangeColors(current);
+            this.ChangeColors(current);
+        }
+        
+        private void themebox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string item = themebox.SelectedItem.ToString();
+
+            Theme current = FindTheme(item);
+
+            ChangeControlThemes(current);
+            
+        }
+
+        private Theme FindTheme(string target)
+        {
+            Theme match = new();
+            foreach(Theme curr in Themes)
+            {
+                if (curr.ThemeName.Equals(target))
+                {
+                    match = curr;
+                    break;
+                }
+            }
+
+            return match;
+        }
+
+        private void InitThemes()
+        {
+
+            Theme[] themes =
+                            {
+                                new(Color.Black, Color.White, "Classic Dark"),
+                                new(Color.White, Color.Black, "Classic Light"),
+
+                                new(Color.FromArgb(30,30,30), Color.Gainsboro, "Soft Dark"),
+                                new(Color.FromArgb(45,45,48), Color.WhiteSmoke, "Visual Studio"),
+
+                                new(Color.MidnightBlue, Color.LightCyan, "Ocean"),
+                                new(Color.DarkSlateGray, Color.Aquamarine, "Matrix"),
+
+                                new(Color.DarkRed, Color.MistyRose, "Crimson"),
+                                new(Color.Maroon, Color.PeachPuff, "Rosewood"),
+
+                                new(Color.DarkGreen, Color.Honeydew, "Nature"),
+                                new(Color.ForestGreen, Color.Beige, "Forest"),
+
+                                new(Color.Indigo, Color.Lavender, "Purple Night"),
+                                new(Color.DarkViolet, Color.White, "Violet"),
+
+                                new(Color.FromArgb(20,20,20), Color.Lime, "Hacker"),
+                                new(Color.Black, Color.DeepSkyBlue, "Cyber Blue"),
+
+                                new(Color.SaddleBrown, Color.Wheat, "Retro Paper"),
+                                new(Color.Peru, Color.Cornsilk, "Vintage"),
+
+                                new(Color.Navy, Color.Gold, "Royal"),
+                                new(Color.DarkSlateBlue, Color.Khaki, "Empire"),
+
+                                new(Color.FromArgb(250,250,250), Color.FromArgb(40,40,40), "Modern Light"),
+                                new(Color.FromArgb(15,15,15), Color.FromArgb(220,220,220), "Modern Dark")
+                            };
+
+            Themes = new(themes);
+            string[] ThemeNames = CountThemeNames(themes);
+            themebox.Items.AddRange(ThemeNames);
+
+        }
+
+        private string[] CountThemeNames(Theme[] themes)
+        {
+            List<string> tns = new(); 
+            foreach(Theme theme in themes)
+            {
+                tns.Add(theme.ThemeName);
+            }
+
+            return tns.ToArray();
+        }
+
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog file = new()
@@ -910,7 +1007,14 @@ namespace Note_Taker2._0
                     
                     string now = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
 
-                    string logpath = Path.Combine(AppContext.BaseDirectory, "Assets", $"Log-{now}.log");
+                    string logfolder = Path.Combine(Environment.GetEnvironmentVariable("APPDATA"), "NoteTaker", "Logs");
+
+                    if (!Directory.Exists(logfolder))
+                    {
+                        Directory.CreateDirectory(logfolder);
+                    }
+
+                    string logpath = Path.Combine(logfolder, $"Log-{now}.log");
 
                     MessageBox.Show(logpath);
 
@@ -934,5 +1038,45 @@ namespace Note_Taker2._0
             }
         }
 
+    }
+
+    public static class Extension
+    {
+        public static void ChangeColors(this Control? ctr, Theme theme)
+        {
+            if (ctr != null)
+            {
+                if (theme.ForeColor != null)
+                {
+                    ctr.ForeColor = theme.ForeColor;
+                }
+
+                if (theme.BackColor != null)
+                {
+                    ctr.BackColor = theme.BackColor;
+                }
+            }
+        }
+
+
+
+
+    }
+
+    public struct Theme
+    {
+        public Color ForeColor { get; set; }
+        public Color BackColor { get; set; }
+
+        public string ThemeName;
+
+        public Theme(Color FC, Color BC, string TN)
+        {
+            ForeColor = FC;
+            BackColor = BC;
+            ThemeName = TN;
+        }
+
+        public override string ToString() => ThemeName;
     }
 }

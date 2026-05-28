@@ -13,6 +13,7 @@ It's current capabilities is relatively simple:
  - Directory Tree View
  - Logging
  - Repository Management (*Git*)
+ - Theme System
  
  With These features. We ensure that your experience is somewhat
  smooth and manageable. More features will come in the future.
